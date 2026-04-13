@@ -1,0 +1,316 @@
+{
+  "info": {
+    "_postman_id": "4c9a6b9c-8c1e-4ad7-9d4b-2dc9e0f6d2a1",
+    "name": "Kaktus Producer API",
+    "description": "Collection for Kaktus producer flow: auth + create thread publish event.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fatkhul\",\n  \"email\": \"fatkhul@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "if (res && res.data) {",
+              "  if (res.data.access_token) pm.collectionVariables.set('access_token', res.data.access_token);",
+              "  if (res.data.refresh_token) pm.collectionVariables.set('refresh_token', res.data.refresh_token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"fatkhul@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Refresh Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const res = pm.response.json();",
+              "if (res && res.data) {",
+              "  if (res.data.access_token) pm.collectionVariables.set('access_token', res.data.access_token);",
+              "  if (res.data.refresh_token) pm.collectionVariables.set('refresh_token', res.data.refresh_token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/refresh",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "refresh"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/logout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth",
+            "logout"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get List Thread",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/threads?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "threads"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Thread (Publish Event)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Belajar Go RabbitMQ\",\n  \"description\": \"Thread untuk diskusi producer-consumer\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/threads",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "threads"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Thread Detail",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/threads/detail?thread_id={{thread_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "threads",
+            "detail"
+          ],
+          "query": [
+            {
+              "key": "thread_id",
+              "value": "{{thread_id}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Comment (Publish Event)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"thread_id\": {{thread_id}},\n  \"comment\": \"Komentar pertama dari Postman\",\n  \"parent_comment_id\": null\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/threads/comment",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "threads",
+            "comment"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Insert Like Thread (Publish Event)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"thread_id\": {{thread_id}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/threads/like",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "threads",
+            "like"
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3333"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "thread_id",
+      "value": "1"
+    }
+  ]
+}
