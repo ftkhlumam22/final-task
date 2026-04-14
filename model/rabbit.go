@@ -1,22 +1,8 @@
 package model
 
-import amqp "github.com/rabbitmq/amqp091-go"
-
 type RabbitConfig struct {
-	URL                     string
-	ExchangeName            string
-	ExchangeType            string
-	ThreadCreatedRoutingKey string
-	ThreadCreatedQueue      string
-	MaxRetry                int
-}
-
-type RabbitConsumer struct {
-	Connection   *amqp.Connection
-	Channel      *amqp.Channel
-	ExchangeName string
-	QueueName    string
-	MaxRetry     int
+	URL      string
+	MaxRetry int
 }
 
 type ThreadCreatedEvent struct {
@@ -46,4 +32,23 @@ type ThreadLikedEvent struct {
 type EventEnvelope struct {
 	Event     string `json:"event"`
 	RequestID string `json:"request_id"`
+}
+
+type ThreadGetLikedRequest struct {
+	Event     string         `json:"event"`
+	RequestID string         `json:"request_id"`
+	Body      map[string]any `json:"body"`
+}
+
+type ThreadLikedListItem struct {
+	Title   string `json:"title"`
+	LikedBy string `json:"liked_by"`
+}
+
+type ThreadGetLikedSuccessResponse struct {
+	Data []ThreadLikedListItem `json:"data"`
+}
+
+type ThreadGetLikedErrorResponse struct {
+	Error string `json:"error"`
 }

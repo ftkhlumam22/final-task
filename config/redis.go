@@ -17,9 +17,9 @@ func NewRedis(redisURL string, redisPassword string, redisDB int) (*redis.Client
 	}
 
 	if strings.HasPrefix(redisURL, "redis://") || strings.HasPrefix(redisURL, "rediss://") {
-		parsedRedisOptions, parseError := redis.ParseURL(redisURL)
-		if parseError != nil {
-			return nil, fmt.Errorf("parse redis url: %w", parseError)
+		parsedRedisOptions, err := redis.ParseURL(redisURL)
+		if err != nil {
+			return nil, fmt.Errorf("parse redis url: %w", err)
 		}
 
 		if redisPassword != "" {
@@ -34,9 +34,9 @@ func NewRedis(redisURL string, redisPassword string, redisDB int) (*redis.Client
 	pingContext, cancelPing := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancelPing()
 
-	if pingError := redisClient.Ping(pingContext).Err(); pingError != nil {
+	if err := redisClient.Ping(pingContext).Err(); err != nil {
 		_ = redisClient.Close()
-		return nil, fmt.Errorf("ping redis: %w", pingError)
+		return nil, fmt.Errorf("ping redis: %w", err)
 	}
 
 	return redisClient, nil

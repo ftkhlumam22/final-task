@@ -9,16 +9,12 @@ const (
 	EventThreadCreated  = "thread.created"
 	EventCommentCreated = "comment.created"
 	EventThreadLiked    = "thread.liked"
+	EventThreadGetLiked = "thread.get.liked"
 )
 
 const (
-	ThreadListCachePattern        = "thread:list:limit:*"
-	ThreadDetailCacheKeyPattern   = "thread:detail:%d"
-	ThreadDetailCacheFieldPayload = "payload"
-)
-
-const (
-	RabbitHeaderRequestID = "x-request-id"
+	ThreadListCachePattern      = "thread:list:limit:*"
+	ThreadDetailCacheKeyPattern = "thread:detail:%d"
 )
 
 const (
@@ -32,8 +28,9 @@ const (
 )
 
 const (
-	MessageInternalServerError = "internal server error"
-	MessageInvalidEventPayload = "invalid event payload"
-	MessageFailedConsumeEvent  = "failed to consume event"
-	MessageMethodNotAllowed    = "method not allowed"
+	MessageInternalServerError     = "internal server error"
+	MessageInvalidEventPayload     = "invalid event payload"
+	MessageFailedConsumeEvent      = "failed to consume event"
+	MessageFailedFetchLikedThreads = "failed to fetch liked threads"
+	MessageMethodNotAllowed        = "method not allowed"
 )

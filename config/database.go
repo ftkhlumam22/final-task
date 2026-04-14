@@ -9,18 +9,18 @@ import (
 )
 
 func NewDB(databaseURL string) (*sql.DB, error) {
-	databaseConnection, openError := sql.Open("pgx", databaseURL)
-	if openError != nil {
-		return nil, fmt.Errorf("open database: %w", openError)
+	databaseConnection, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("open database: %w", err)
 	}
 
 	databaseConnection.SetConnMaxLifetime(5 * time.Minute)
 	databaseConnection.SetMaxIdleConns(5)
 	databaseConnection.SetMaxOpenConns(20)
 
-	if pingError := databaseConnection.Ping(); pingError != nil {
+	if err = databaseConnection.Ping(); err != nil {
 		_ = databaseConnection.Close()
-		return nil, fmt.Errorf("ping database: %w", pingError)
+		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
 	return databaseConnection, nil

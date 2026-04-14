@@ -1,16 +1,20 @@
 package router
 
-import (
-	"net/http"
+import "net/http"
 
-	"kaktus-consumer/controller"
-	"kaktus-consumer/helper"
-)
+func NewRouter(dependency RouterDependency) *Router {
+	return &Router{
+		healthHandler:    dependency.HealthHandler,
+		methodMiddleware: dependency.MethodMiddleware,
+	}
+}
 
-func CollectRouter() http.Handler {
+func (router *Router) Handler() http.Handler {
 	httpRouter := http.NewServeMux()
 
-	httpRouter.HandleFunc("/health", helper.HandleMethod(http.MethodGet, controller.HealthHandler()))
+	router.registerHealthRoutes(httpRouter)
+	router.registerAuthRoutes(httpRouter)
+	router.registerThreadRoutes(httpRouter)
 
 	return httpRouter
 }

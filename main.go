@@ -8,71 +8,138 @@ import (
 
 	"kaktus-consumer/config"
 	"kaktus-consumer/controller"
+	"kaktus-consumer/helper"
+	"kaktus-consumer/messaging"
+	"kaktus-consumer/middleware"
 	"kaktus-consumer/model"
+	"kaktus-consumer/module"
+	"kaktus-consumer/repository/cacherepo"
+	"kaktus-consumer/repository/publisherrepo"
+	"kaktus-consumer/repository/sqlrepo"
+	"kaktus-consumer/repository/subscriberrepo"
 	"kaktus-consumer/router"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	if environmentError := godotenv.Load(".env"); environmentError != nil {
-		log.Printf("warning: failed to load .env file: %v", environmentError)
+	if err := godotenv.Load(".env"); err != nil {
+		log.Printf("warning: failed to load .env file: %v", err)
 	}
 
 	environmentFactory := model.NewOSEnvFactory()
-	applicationConfig, configurationError := config.LoadAppConfig(environmentFactory)
-	if configurationError != nil {
-		log.Fatal(configurationError)
+	applicationConfig, err := config.LoadAppConfig(environmentFactory)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	databaseConnection, databaseError := config.NewDB(applicationConfig.DatabaseURL)
-	if databaseError != nil {
-		log.Fatal(databaseError)
+	databaseConnection, err := config.NewDB(applicationConfig.DatabaseURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 	defer databaseConnection.Close()
 
-	redisClient, redisError := config.NewRedis(
+	redisClient, err := config.NewRedis(
 		applicationConfig.RedisURL,
 		applicationConfig.RedisPassword,
 		applicationConfig.RedisDB,
 	)
-	if redisError != nil {
-		log.Fatal(redisError)
+	if err != nil {
+		log.Fatal(err)
 	}
 	defer redisClient.Close()
 
-	rabbitConsumer, rabbitError := config.NewRabbitConsumer(applicationConfig.RabbitMQ)
-	if rabbitError != nil {
-		log.Fatal(rabbitError)
+	rabbitConnection, err := config.NewRabbitConnection(applicationConfig.RabbitMQ.URL)
+	if err != nil {
+		log.Fatal(err)
 	}
-	defer rabbitConsumer.Channel.Close()
-	defer rabbitConsumer.Connection.Close()
+	defer rabbitConnection.Close()
+
+	rabbitSubscriberChannel, err := rabbitConnection.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rabbitSubscriberChannel.Close()
+
+	rabbitTopologyConfig := messaging.LoadRabbitTopologyConfig(environmentFactory)
+	consumerQueues, err := messaging.SetupConsumerTopology(rabbitSubscriberChannel, rabbitTopologyConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = rabbitSubscriberChannel.Qos(10, 0, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sqlRepository := sqlrepo.NewSQLRepository(databaseConnection)
+	cacheRepository := cacherepo.NewCacheRepository(redisClient)
+	subscriberRepository := subscriberrepo.NewSubscriberRepository(rabbitSubscriberChannel)
+
+	publisherRepository, err := publisherrepo.NewPublisherRepository(rabbitConnection)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer publisherRepository.Close()
+
+	eventService := module.NewEventService(module.EventServiceDependency{
+		SQLRepository:   sqlRepository,
+		CacheRepository: cacheRepository,
+	})
+	consumerService := module.NewConsumerService(module.ConsumerServiceDependency{
+		EventService:        eventService,
+		PublisherRepository: publisherRepository,
+		MaxRetry:            applicationConfig.RabbitMQ.MaxRetry,
+		RetryDelay:          time.Duration(model.ConsumerRetryDelaySeconds) * time.Second,
+	})
+
+	healthService := module.NewHealthService()
 
 	requestContext, cancelContext := context.WithCancel(context.Background())
 	defer cancelContext()
 
+	eventConsumerController := controller.NewEventConsumerController(
+		controller.EventConsumerControllerDependency{
+			ConsumerService:         consumerService,
+			SubscriberRepository:    subscriberRepository,
+			ThreadCreatedQueueName:  consumerQueues.ThreadCreatedQueueName,
+			CommentCreatedQueueName: consumerQueues.CommentCreatedQueueName,
+			ThreadLikedQueueName:    consumerQueues.ThreadLikedQueueName,
+			ThreadGetLikedQueueName: consumerQueues.ThreadGetLikedQueueName,
+		},
+	)
+
 	go func() {
-		workerError := controller.StartEventConsumerWorker(
-			requestContext,
-			rabbitConsumer,
-			databaseConnection,
-			redisClient,
-		)
-		if workerError != nil {
-			log.Fatal(workerError)
+		err := eventConsumerController.Start(requestContext)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}()
 
+	healthController := controller.NewHealthController(controller.HealthControllerDependency{
+		HealthService: healthService,
+	})
+
+	methodMiddleware := middleware.NewMethodMiddleware(middleware.MethodMiddlewareDependency{
+		WriteError: helper.WriteError,
+	})
+
+	httpRouter := router.NewRouter(router.RouterDependency{
+		HealthHandler:    healthController,
+		MethodMiddleware: methodMiddleware,
+	})
+
 	httpServer := http.Server{
 		Addr:         applicationConfig.ServerAddr,
-		Handler:      router.CollectRouter(),
+		Handler:      httpRouter.Handler(),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
 	log.Printf("consumer running %s", applicationConfig.ServerAddr)
-	if runError := httpServer.ListenAndServe(); runError != nil && runError != http.ErrServerClosed {
-		log.Fatal(runError)
+	err = httpServer.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
 	}
 }

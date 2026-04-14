@@ -24,8 +24,8 @@ func WriteError(responseWriter http.ResponseWriter, statusCode int, message stri
 	})
 }
 
-func WriteMappedError(responseWriter http.ResponseWriter, mappedError error) {
-	if errors.Is(mappedError, model.ErrInvalidEventPayload) {
+func WriteMappedError(responseWriter http.ResponseWriter, err error) {
+	if errors.Is(err, model.ErrInvalidEventPayload) {
 		WriteError(responseWriter, http.StatusBadRequest, model.MessageInvalidEventPayload, nil)
 		return
 	}
@@ -37,7 +37,7 @@ func writeJSON(responseWriter http.ResponseWriter, statusCode int, responseBody 
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(statusCode)
 
-	if encodeError := json.NewEncoder(responseWriter).Encode(responseBody); encodeError != nil {
+	if err := json.NewEncoder(responseWriter).Encode(responseBody); err != nil {
 		http.Error(responseWriter, model.MessageInternalServerError, http.StatusInternalServerError)
 	}
 }
