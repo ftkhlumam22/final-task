@@ -1,10 +1,7 @@
 package request
 
-type CreateThread struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-}
+import "final-task/model"
 
-type LikeThread struct {
-	ThreadID int64 `json:"thread_id"`
-}
+type CreateThread = model.CreateThreadRequest
+
+type LikeThread = model.LikeThreadRequest

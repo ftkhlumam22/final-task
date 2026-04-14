@@ -36,14 +36,9 @@ func LoadAppConfig(environmentFactory model.GetEnvFactory) (model.AppConfig, err
 		RedisPassword: environmentFactory.GetString("REDIS_PASSWORD", model.DefaultRedisPassword),
 		RedisDB:       redisDB,
 		RabbitMQ: model.RabbitConfig{
-			URL:                      environmentFactory.GetString("RABBITMQ_URL", model.DefaultRabbitMQURL),
-			ExchangeName:             environmentFactory.GetString("RABBITMQ_EXCHANGE", model.DefaultRabbitMQExchange),
-			ExchangeType:             environmentFactory.GetString("RABBITMQ_EXCHANGE_TYPE", model.DefaultRabbitMQExchangeType),
-			ThreadCreatedRoutingKey:  environmentFactory.GetString("RABBITMQ_THREAD_CREATED_KEY", model.DefaultThreadCreatedRoutingKey),
-			CommentCreatedRoutingKey: environmentFactory.GetString("RABBITMQ_COMMENT_CREATED_KEY", model.DefaultCommentCreatedRoutingKey),
-			ThreadLikedRoutingKey:    environmentFactory.GetString("RABBITMQ_THREAD_LIKED_KEY", model.DefaultThreadLikedRoutingKey),
+			URL: environmentFactory.GetString("RABBITMQ_URL", model.DefaultRabbitMQURL),
 		},
-		ServerAddr:    environmentFactory.GetString("SERVER_ADDR", model.DefaultServerAddr),
+		ServerAddr: environmentFactory.GetString("SERVER_ADDR", model.DefaultServerAddr),
 		JWT: model.JWTConfig{
 			SecretKey:       secret,
 			Issuer:          environmentFactory.GetString("JWT_ISSUER", model.DefaultJWTIssuer),

@@ -1,17 +1,7 @@
 package response
 
-import "time"
+import "final-task/model"
 
-type LoginUser struct {
-	Email        string `json:"email"`
-	Name         string `json:"name"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
+type LoginUser = model.LoginUserResponse
 
-type RegisterUser struct {
-	ID        int64     `json:"id"`
-	Email     string    `json:"email"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-}
+type RegisterUser = model.RegisterUserResponse

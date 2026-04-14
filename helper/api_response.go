@@ -34,23 +34,25 @@ func WriteError(responseWriter http.ResponseWriter, statusCode int, message stri
 	})
 }
 
-func WriteMappedError(responseWriter http.ResponseWriter, mappedError error) {
-	statusCode, message := mapError(mappedError)
+func WriteMappedError(responseWriter http.ResponseWriter, err error) {
+	statusCode, message := mapError(err)
 	WriteError(responseWriter, statusCode, message)
 }
 
-func mapError(mappedError error) (int, string) {
+func mapError(err error) (int, string) {
 	switch {
-	case errors.Is(mappedError, model.ErrEmailAlreadyExists):
+	case errors.Is(err, model.ErrEmailAlreadyExists):
 		return http.StatusConflict, model.MessageEmailAlreadyExists
-	case errors.Is(mappedError, model.ErrInvalidCredential):
+	case errors.Is(err, model.ErrInvalidCredential):
 		return http.StatusUnauthorized, model.MessageInvalidCredential
-	case errors.Is(mappedError, model.ErrInvalidRefresh):
+	case errors.Is(err, model.ErrInvalidRefresh):
 		return http.StatusUnauthorized, model.MessageInvalidRefresh
-	case errors.Is(mappedError, model.ErrPublishEvent):
+	case errors.Is(err, model.ErrPublishEvent):
 		return http.StatusBadGateway, model.MessageFailedPublishEvent
-	case errors.Is(mappedError, model.ErrThreadNotFound):
+	case errors.Is(err, model.ErrThreadNotFound):
 		return http.StatusNotFound, model.MessageThreadNotFound
+	case errors.Is(err, model.ErrConsumeEvent):
+		return http.StatusBadGateway, model.MessageFailedConsumeEvent
 	default:
 		return http.StatusInternalServerError, model.MessageInternalServerError
 	}

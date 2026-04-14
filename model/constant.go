@@ -14,6 +14,7 @@ const (
 	EventThreadCreated  = "thread.created"
 	EventCommentCreated = "comment.created"
 	EventThreadLiked    = "thread.liked"
+	EventThreadGetLiked = "thread.get.liked"
 )
 
 const (
@@ -40,6 +41,7 @@ const (
 	MessageJWTSecretRequired       = "JWT_SECRET_KEY is required"
 	MessageUnauthorized            = "unauthorized"
 	MessageThreadNotFound          = "thread not found"
+	MessageFailedConsumeEvent      = "failed to consume event"
 )
 
 const (

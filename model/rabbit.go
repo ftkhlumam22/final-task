@@ -3,21 +3,20 @@ package model
 import amqp "github.com/rabbitmq/amqp091-go"
 
 type RabbitConfig struct {
-	URL                      string
-	ExchangeName             string
-	ExchangeType             string
-	ThreadCreatedRoutingKey  string
-	CommentCreatedRoutingKey string
-	ThreadLikedRoutingKey    string
+	URL string
 }
 
 type RabbitPublisher struct {
-	Connection               *amqp.Connection
-	Channel                  *amqp.Channel
-	ExchangeName             string
-	ThreadCreatedRoutingKey  string
-	CommentCreatedRoutingKey string
-	ThreadLikedRoutingKey    string
+	Connection   *amqp.Connection
+	Channel      *amqp.Channel
+	ExchangeName string
+}
+
+type RabbitRPCClient struct {
+	Connection   *amqp.Connection
+	Channel      *amqp.Channel
+	QueueName    string
+	ExchangeName string
 }
 
 type ThreadCreatedEvent struct {
@@ -42,4 +41,10 @@ type ThreadLikedEvent struct {
 	RequestID string `json:"request_id"`
 	ThreadID  int64  `json:"thread_id"`
 	LikedBy   int64  `json:"liked_by"`
+}
+
+type ThreadGetLikedEvent struct {
+	Event     string `json:"event"`
+	RequestID string `json:"request_id"`
+	Body      any    `json:"body"`
 }

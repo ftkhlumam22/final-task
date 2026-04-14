@@ -7,8 +7,8 @@ import (
 
 func NewRequestID() (string, error) {
 	randomBytes := make([]byte, 16)
-	if _, readError := rand.Read(randomBytes); readError != nil {
-		return "", readError
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", err
 	}
 
 	return hex.EncodeToString(randomBytes), nil

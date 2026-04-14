@@ -8,4 +8,5 @@ var (
 	ErrInvalidRefresh     = errors.New(MessageInvalidRefresh)
 	ErrPublishEvent       = errors.New(MessageFailedPublishEvent)
 	ErrThreadNotFound     = errors.New(MessageThreadNotFound)
+	ErrConsumeEvent       = errors.New(MessageFailedConsumeEvent)
 )

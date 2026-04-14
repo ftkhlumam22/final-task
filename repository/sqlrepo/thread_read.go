@@ -1,4 +1,4 @@
-package repository
+package sqlrepo
 
 import (
 	"context"
@@ -7,12 +7,11 @@ import (
 	"final-task/dto/response"
 )
 
-func GetThreadList(
-	requestContext context.Context,
-	databaseConnection *sql.DB,
-	limit int,
-	offset int,
-) ([]response.ThreadData, int, error) {
+func NewThreadReadRepository(databaseConnection *sql.DB) *ThreadReadRepository {
+	return &ThreadReadRepository{db: databaseConnection}
+}
+
+func (threadReadRepository *ThreadReadRepository) GetThreadList(limit int, offset int) ([]response.ThreadData, int, error) {
 	threadListQuery := `
 		SELECT
 			threads.id,
@@ -26,40 +25,40 @@ func GetThreadList(
 		LIMIT $1 OFFSET $2
 	`
 
-	rows, queryError := databaseConnection.QueryContext(requestContext, threadListQuery, limit, offset)
-	if queryError != nil {
-		return nil, 0, queryError
+	rows, err := threadReadRepository.db.QueryContext(context.Background(), threadListQuery, limit, offset)
+	if err != nil {
+		return nil, 0, err
 	}
 	defer rows.Close()
 
 	threadList := make([]response.ThreadData, 0)
 	for rows.Next() {
 		var threadData response.ThreadData
-		scanError := rows.Scan(
+		err := rows.Scan(
 			&threadData.ID,
 			&threadData.Title,
 			&threadData.Description,
 			&threadData.CreatedBy,
 			&threadData.CreatedAt,
 		)
-		if scanError != nil {
-			return nil, 0, scanError
+		if err != nil {
+			return nil, 0, err
 		}
 
 		threadList = append(threadList, threadData)
 	}
 
-	if rowsError := rows.Err(); rowsError != nil {
-		return nil, 0, rowsError
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
 	}
 
 	var totalForum int
-	countQueryError := databaseConnection.QueryRowContext(
-		requestContext,
+	err = threadReadRepository.db.QueryRowContext(
+		context.Background(),
 		`SELECT COUNT(1) FROM threads`,
 	).Scan(&totalForum)
-	if countQueryError != nil {
-		return nil, 0, countQueryError
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return threadList, totalForum, nil

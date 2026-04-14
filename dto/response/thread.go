@@ -1,27 +1,9 @@
 package response
 
-import "time"
+import "final-task/model"
 
-type ThreadData struct {
-	ID          int64     `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	CreatedBy   string    `json:"created_by"`
-	CreatedAt   time.Time `json:"created_at"`
-}
+type ThreadData = model.ThreadDataResponse
 
-type GetAllThread struct {
-	ListForum  []ThreadData `json:"list_forum"`
-	TotalForum int          `json:"total_forum"`
-}
+type GetAllThread = model.GetAllThreadResponse
 
-type ThreadDetail struct {
-	ID            int64         `json:"id"`
-	Title         string        `json:"title"`
-	Description   string        `json:"description"`
-	CreatedBy     string        `json:"created_by"`
-	CreatedAt     time.Time     `json:"created_at"`
-	TotalLikes    int           `json:"total_likes"`
-	TotalComments int           `json:"total_comments"`
-	CommentList   []CommentData `json:"comment_list"`
-}
+type ThreadDetail = model.ThreadDetailResponse

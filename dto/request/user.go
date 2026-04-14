@@ -1,16 +1,9 @@
 package request
 
-type RegisterUser struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-}
+import "final-task/model"
 
-type LoginUser struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+type RegisterUser = model.RegisterUserRequest
 
-type RefreshToken struct {
-	RefreshToken string `json:"refresh_token"`
-}
+type LoginUser = model.LoginUserRequest
+
+type RefreshToken = model.RefreshTokenRequest

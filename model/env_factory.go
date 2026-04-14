@@ -33,9 +33,9 @@ func (OSEnvFactory) GetInt(key string, fallback int) (int, error) {
 		return fallback, nil
 	}
 
-	parsedIntValue, parseError := strconv.Atoi(environmentValue)
-	if parseError != nil {
-		return 0, fmt.Errorf("%s must be integer: %w", key, parseError)
+	parsedIntValue, err := strconv.Atoi(environmentValue)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be integer: %w", key, err)
 	}
 
 	return parsedIntValue, nil

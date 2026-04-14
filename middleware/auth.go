@@ -1,4 +1,4 @@
-package helper
+package middleware
 
 import (
 	"context"
@@ -7,30 +7,33 @@ import (
 	"net/http"
 	"strings"
 
+	"final-task/helper"
 	"final-task/model"
 )
 
-func RequireAccessToken(jwtManager *model.JWTManager, nextHandler http.HandlerFunc) http.HandlerFunc {
+type VerifyTokenFunc func(tokenString string, expectedTokenType string) (*model.CustomClaims, error)
+
+func RequireAccessToken(verifyToken VerifyTokenFunc, nextHandler http.HandlerFunc) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 		authorizationHeader := strings.TrimSpace(httpRequest.Header.Get("Authorization"))
 		headerParts := strings.SplitN(authorizationHeader, " ", 2)
 		if len(headerParts) != 2 || !strings.EqualFold(headerParts[0], "Bearer") {
 			log.Printf("[AUTH] Header Authorization tidak valid.")
-			WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
+			helper.WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
 			return
 		}
 
 		accessToken := strings.TrimSpace(headerParts[1])
 		if accessToken == "" {
 			log.Printf("[AUTH] Access token kosong.")
-			WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
+			helper.WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
 			return
 		}
 
-		tokenClaims, verifyError := jwtManager.VerifyToken(accessToken, model.TokenTypeAccess)
-		if verifyError != nil {
-			log.Printf("[AUTH] Access token tidak valid. err=%v", verifyError)
-			WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
+		tokenClaims, err := verifyToken(accessToken, model.TokenTypeAccess)
+		if err != nil {
+			log.Printf("[AUTH] Access token tidak valid. err=%v", err)
+			helper.WriteError(responseWriter, http.StatusUnauthorized, model.MessageUnauthorized)
 			return
 		}
 		log.Printf("[AUTH] Access token valid. user_id=%d", tokenClaims.UserID)
