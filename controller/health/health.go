@@ -1,4 +1,4 @@
-package controller
+package health
 
 import (
 	"net/http"
@@ -6,13 +6,13 @@ import (
 	"kaktus-consumer/helper"
 )
 
-func NewHealthController(dependency HealthControllerDependency) *HealthController {
-	return &HealthController{
+func NewController(dependency Dependency) *Controller {
+	return &Controller{
 		healthService: dependency.HealthService,
 	}
 }
 
-func (controller *HealthController) Health() http.HandlerFunc {
+func (controller *Controller) Health() http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, _ *http.Request) {
 		helper.WriteSuccess(responseWriter, http.StatusOK, controller.healthService.Status())
 	}

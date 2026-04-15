@@ -1,4 +1,4 @@
-package publisherrepo
+package publisher
 
 import (
 	"fmt"

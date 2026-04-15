@@ -1,4 +1,4 @@
-package subscriberrepo
+package subscriber
 
 import (
 	"fmt"

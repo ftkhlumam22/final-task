@@ -10,13 +10,12 @@ import (
 	"kaktus-consumer/controller"
 	"kaktus-consumer/helper"
 	"kaktus-consumer/messaging"
+	"kaktus-consumer/messaging/publisher"
+	"kaktus-consumer/messaging/subscriber"
 	"kaktus-consumer/middleware"
 	"kaktus-consumer/model"
 	"kaktus-consumer/module"
-	"kaktus-consumer/repository/cacherepo"
-	"kaktus-consumer/repository/publisherrepo"
-	"kaktus-consumer/repository/sqlrepo"
-	"kaktus-consumer/repository/subscriberrepo"
+	"kaktus-consumer/repository"
 	"kaktus-consumer/router"
 
 	"github.com/joho/godotenv"
@@ -72,22 +71,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sqlRepository := sqlrepo.NewSQLRepository(databaseConnection)
-	cacheRepository := cacherepo.NewCacheRepository(redisClient)
-	subscriberRepository := subscriberrepo.NewSubscriberRepository(rabbitSubscriberChannel)
+	subscriberRepository := subscriber.NewSubscriberRepository(rabbitSubscriberChannel)
 
-	publisherRepository, err := publisherrepo.NewPublisherRepository(rabbitConnection)
+	publisherRepository, err := publisher.NewPublisherRepository(rabbitConnection)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer publisherRepository.Close()
 
-	eventService := module.NewEventService(module.EventServiceDependency{
-		SQLRepository:   sqlRepository,
-		CacheRepository: cacheRepository,
+	threadRepository := repository.NewThreadRepository(repository.ThreadRepositoryDependency{
+		DatabaseConnection: databaseConnection,
+		RedisClient:        redisClient,
 	})
-	consumerService := module.NewConsumerService(module.ConsumerServiceDependency{
-		EventService:        eventService,
+
+	threadService := module.NewThreadService(module.ThreadServiceDependency{
+		ThreadRepository:    threadRepository,
 		PublisherRepository: publisherRepository,
 		MaxRetry:            applicationConfig.RabbitMQ.MaxRetry,
 		RetryDelay:          time.Duration(model.ConsumerRetryDelaySeconds) * time.Second,
@@ -98,9 +96,9 @@ func main() {
 	requestContext, cancelContext := context.WithCancel(context.Background())
 	defer cancelContext()
 
-	eventConsumerController := controller.NewEventConsumerController(
-		controller.EventConsumerControllerDependency{
-			ConsumerService:         consumerService,
+	threadConsumerController := controller.NewThreadConsumerController(
+		controller.ThreadConsumerControllerDependency{
+			ThreadService:           threadService,
 			SubscriberRepository:    subscriberRepository,
 			ThreadCreatedQueueName:  consumerQueues.ThreadCreatedQueueName,
 			CommentCreatedQueueName: consumerQueues.CommentCreatedQueueName,
@@ -110,7 +108,7 @@ func main() {
 	)
 
 	go func() {
-		err := eventConsumerController.Start(requestContext)
+		err := threadConsumerController.Start(requestContext)
 		if err != nil {
 			log.Fatal(err)
 		}
