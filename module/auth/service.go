@@ -10,12 +10,12 @@ import (
 )
 
 func NewAuthService(
-	userRepository UserRepository,
+	userSQLRepository UserSQLRepository,
 	tokenProvider TokenProvider,
 	userCacheRepository UserCacheRepository,
 ) *AuthService {
 	return &AuthService{
-		userRepository:      userRepository,
+		userSQLRepository:   userSQLRepository,
 		tokenProvider:       tokenProvider,
 		userCacheRepository: userCacheRepository,
 	}
@@ -31,14 +31,14 @@ func (authService *AuthService) RegisterUser(
 		return model.User{}, err
 	}
 
-	return authService.userRepository.CreateUser(userName, userEmail, passwordHash)
+	return authService.userSQLRepository.CreateUser(userName, userEmail, passwordHash)
 }
 
 func (authService *AuthService) LoginUser(
 	userEmail string,
 	userPassword string,
 ) (model.AuthResult, error) {
-	foundUser, err := authService.userRepository.FindUserByEmail(userEmail)
+	foundUser, err := authService.userSQLRepository.FindUserByEmail(userEmail)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.AuthResult{}, model.ErrInvalidCredential
@@ -46,7 +46,7 @@ func (authService *AuthService) LoginUser(
 		return model.AuthResult{}, err
 	}
 
-	if err := helper.ComparePassword(foundUser.PasswordHash, userPassword); err != nil {
+	if err = helper.ComparePassword(foundUser.PasswordHash, userPassword); err != nil {
 		return model.AuthResult{}, model.ErrInvalidCredential
 	}
 

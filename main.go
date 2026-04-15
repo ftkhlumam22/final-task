@@ -6,11 +6,9 @@ import (
 	"final-task/helper"
 	"final-task/messaging"
 	"final-task/model"
+	"final-task/module"
 	authmodule "final-task/module/auth"
-	threadmodule "final-task/module/thread"
-	"final-task/repository/cacherepo"
-	"final-task/repository/publisherrepo"
-	"final-task/repository/sqlrepo"
+	"final-task/repository"
 	"final-task/router"
 	"log"
 	"net/http"
@@ -62,27 +60,10 @@ func main() {
 	log.Printf("[BOOT] JWT manager siap dipakai.")
 	tokenProvider := authmodule.NewJWTTokenProvider(jwtManager)
 
-	userRepository := sqlrepo.NewUserRepository(databaseConnection)
-	threadReadRepository := sqlrepo.NewThreadReadRepository(databaseConnection)
-	redisRepository := cacherepo.NewRedisRepository(redisClient)
-	userCacheRepository := cacherepo.NewUserCacheRepository(redisRepository)
-	threadListCacheRepository := cacherepo.NewThreadListCacheRepository(redisRepository)
-	threadDetailCacheRepository := cacherepo.NewThreadDetailCacheRepository(redisRepository)
-	threadEventPublisher := publisherrepo.NewThreadEventPublisher(rabbitPublisher)
-	threadRPCPublisher := publisherrepo.NewThreadRPCPublisher(rabbitRPCClient)
-
-	authService := authmodule.NewAuthService(userRepository, tokenProvider, userCacheRepository)
-	threadService := threadmodule.NewThreadService(
-		threadReadRepository,
-		threadListCacheRepository,
-		threadDetailCacheRepository,
-		threadEventPublisher,
-		threadRPCPublisher,
-	)
-
-	authController := controller.NewAuthController(authService)
-	threadController := controller.NewThreadController(threadService)
-	httpRouter := router.NewHTTPRouter(authController, threadController, tokenProvider.VerifyToken)
+	repositories := repository.New(databaseConnection, redisClient)
+	services := module.NewServices(repositories, tokenProvider, rabbitPublisher, rabbitRPCClient)
+	controllers := controller.NewControllers(services.Auth, services.Thread)
+	httpRouter := router.NewHTTPRouter(controllers.Auth, controllers.Thread, tokenProvider.VerifyToken)
 
 	httpServer := http.Server{
 		Addr:         appConfig.ServerAddr,

@@ -7,12 +7,12 @@ import (
 )
 
 type AuthService struct {
-	userRepository      UserRepository
+	userSQLRepository   UserSQLRepository
 	tokenProvider       TokenProvider
 	userCacheRepository UserCacheRepository
 }
 
-type UserRepository interface {
+type UserSQLRepository interface {
 	CreateUser(userName string, userEmail string, passwordHash string) (model.User, error)
 	FindUserByEmail(userEmail string) (model.User, error)
 }
@@ -28,4 +28,8 @@ type TokenProvider interface {
 	GenerateRefreshToken(userID int64) (token string, tokenID string, err error)
 	VerifyToken(tokenString string, expectedTokenType string) (*model.CustomClaims, error)
 	RefreshTTL() time.Duration
+}
+
+type helperTokenProvider struct {
+	jwtManager *model.JWTManager
 }

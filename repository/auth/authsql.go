@@ -1,19 +1,19 @@
-package sqlrepo
+package authrepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+
 	"final-task/model"
 
 	"github.com/lib/pq"
 )
 
-func NewUserRepository(databaseConnection *sql.DB) *UserRepository {
-	return &UserRepository{db: databaseConnection}
-}
-
-func (userRepository *UserRepository) CreateUser(userName string, userEmail string, passwordHash string) (model.User, error) {
+func (authSQLRepository *AuthSQLRepository) CreateUser(
+	userName string,
+	userEmail string,
+	passwordHash string,
+) (model.User, error) {
 	insertUserQuery := `
 		INSERT INTO users (name, email, password_hash)
 		VALUES ($1, $2, $3)
@@ -21,7 +21,7 @@ func (userRepository *UserRepository) CreateUser(userName string, userEmail stri
 	`
 
 	var createdUser model.User
-	err := userRepository.db.QueryRowContext(
+	err := authSQLRepository.db.QueryRowContext(
 		context.Background(),
 		insertUserQuery,
 		userName,
@@ -40,7 +40,7 @@ func (userRepository *UserRepository) CreateUser(userName string, userEmail stri
 	return createdUser, nil
 }
 
-func (userRepository *UserRepository) FindUserByEmail(userEmail string) (model.User, error) {
+func (authSQLRepository *AuthSQLRepository) FindUserByEmail(userEmail string) (model.User, error) {
 	findUserByEmailQuery := `
 		SELECT id, name, email, password_hash, created_at
 		FROM users
@@ -48,7 +48,7 @@ func (userRepository *UserRepository) FindUserByEmail(userEmail string) (model.U
 	`
 
 	var foundUser model.User
-	err := userRepository.db.QueryRowContext(context.Background(), findUserByEmailQuery, userEmail).
+	err := authSQLRepository.db.QueryRowContext(context.Background(), findUserByEmailQuery, userEmail).
 		Scan(&foundUser.ID, &foundUser.Name, &foundUser.Email, &foundUser.PasswordHash, &foundUser.CreatedAt)
 	if err != nil {
 		return model.User{}, err

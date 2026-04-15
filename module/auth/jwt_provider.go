@@ -7,10 +7,6 @@ import (
 	"final-task/model"
 )
 
-type helperTokenProvider struct {
-	jwtManager *model.JWTManager
-}
-
 func NewJWTTokenProvider(jwtManager *model.JWTManager) TokenProvider {
 	return &helperTokenProvider{
 		jwtManager: jwtManager,
