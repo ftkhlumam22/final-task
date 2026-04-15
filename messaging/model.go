@@ -15,8 +15,8 @@ type RabbitTopologyConfig struct {
 }
 
 type ConsumerQueues struct {
-	ThreadCreatedQueueName string
+	ThreadCreatedQueueName  string
 	CommentCreatedQueueName string
-	ThreadLikedQueueName string
+	ThreadLikedQueueName    string
 	ThreadGetLikedQueueName string
 }

@@ -3,13 +3,12 @@ package middleware
 import (
 	"net/http"
 
+	"kaktus-consumer/helper"
 	"kaktus-consumer/model"
 )
 
-func NewMethodMiddleware(dependency MethodMiddlewareDependency) MethodMiddleware {
-	return &methodMiddleware{
-		writeError: dependency.WriteError,
-	}
+func NewMethodMiddleware() MethodMiddleware {
+	return &methodMiddleware{}
 }
 
 func (middleware *methodMiddleware) Handle(
@@ -18,7 +17,7 @@ func (middleware *methodMiddleware) Handle(
 ) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		if request.Method != expectedMethod {
-			middleware.writeError(
+			helper.WriteError(
 				responseWriter,
 				http.StatusMethodNotAllowed,
 				model.MessageMethodNotAllowed,

@@ -2,6 +2,7 @@ package thread
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -12,6 +13,46 @@ import (
 )
 
 const cacheScanBatchSize int64 = 100
+
+func (repo *repository) BeginTransaction(requestContext context.Context) (Repository, error) {
+	transaction, err := repo.databaseConnection.BeginTx(requestContext, nil)
+	if err != nil {
+		return nil, fmt.Errorf("%w: begin transaction: %v", model.ErrConsumeEvent, err)
+	}
+
+	return &repository{
+		databaseConnection: repo.databaseConnection,
+		redisClient:        repo.redisClient,
+		transaction:        transaction,
+	}, nil
+}
+
+func (repository *repository) CommitTransaction() error {
+	if repository.transaction == nil {
+		return nil
+	}
+
+	if err := repository.transaction.Commit(); err != nil {
+		return fmt.Errorf("%w: commit transaction: %v", model.ErrConsumeEvent, err)
+	}
+
+	repository.transaction = nil
+	return nil
+}
+
+func (repository *repository) RollbackTransaction() error {
+	if repository.transaction == nil {
+		return nil
+	}
+
+	err := repository.transaction.Rollback()
+	if err != nil && !errors.Is(err, sql.ErrTxDone) {
+		return fmt.Errorf("%w: rollback transaction: %v", model.ErrConsumeEvent, err)
+	}
+
+	repository.transaction = nil
+	return nil
+}
 
 func (repository *repository) InsertThread(
 	requestContext context.Context,
@@ -43,37 +84,21 @@ func (repository *repository) InsertThread(
 	return insertedThread, nil
 }
 
-func (repository *repository) WithTransaction(
-	requestContext context.Context,
-	operation func(transactionRepository TransactionRepository) error,
-) error {
-	transaction, err := repository.databaseConnection.BeginTx(requestContext, nil)
-	if err != nil {
-		return fmt.Errorf("%w: begin transaction: %v", model.ErrConsumeEvent, err)
-	}
-	defer transaction.Rollback()
-
-	if err = operation(&sqlTransactionRepository{transaction: transaction}); err != nil {
-		return err
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return fmt.Errorf("%w: commit transaction: %v", model.ErrConsumeEvent, err)
-	}
-
-	return nil
-}
-
-func (repository *sqlTransactionRepository) InsertComment(
+func (repository *repository) InsertComment(
 	requestContext context.Context,
 	commentCreatedEvent model.CommentCreatedEvent,
 ) error {
+	transaction, err := repository.requireTransaction()
+	if err != nil {
+		return err
+	}
+
 	insertQuery := `
 		INSERT INTO comments (thread_id, comment, created_by, parent_comment_id)
 		VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := repository.transaction.ExecContext(
+	_, err = transaction.ExecContext(
 		requestContext,
 		insertQuery,
 		commentCreatedEvent.ThreadID,
@@ -88,18 +113,23 @@ func (repository *sqlTransactionRepository) InsertComment(
 	return nil
 }
 
-func (repository *sqlTransactionRepository) IncrementParentCommentReply(
+func (repository *repository) IncrementParentCommentReply(
 	requestContext context.Context,
 	parentCommentID int64,
 	threadID int64,
 ) (int64, error) {
+	transaction, err := repository.requireTransaction()
+	if err != nil {
+		return 0, err
+	}
+
 	updateQuery := `
 		UPDATE comments
 		SET total_reply = total_reply + 1, updated_at = NOW()
 		WHERE id = $1 AND thread_id = $2
 	`
 
-	updateResult, err := repository.transaction.ExecContext(
+	updateResult, err := transaction.ExecContext(
 		requestContext,
 		updateQuery,
 		parentCommentID,
@@ -117,17 +147,22 @@ func (repository *sqlTransactionRepository) IncrementParentCommentReply(
 	return rowsAffected, nil
 }
 
-func (repository *sqlTransactionRepository) IncrementThreadTotalComment(
+func (repository *repository) IncrementThreadTotalComment(
 	requestContext context.Context,
 	threadID int64,
 ) (int64, error) {
+	transaction, err := repository.requireTransaction()
+	if err != nil {
+		return 0, err
+	}
+
 	updateQuery := `
 		UPDATE threads
 		SET total_comment = total_comment + 1, updated_at = NOW()
 		WHERE id = $1
 	`
 
-	updateResult, err := repository.transaction.ExecContext(
+	updateResult, err := transaction.ExecContext(
 		requestContext,
 		updateQuery,
 		threadID,
@@ -144,17 +179,22 @@ func (repository *sqlTransactionRepository) IncrementThreadTotalComment(
 	return rowsAffected, nil
 }
 
-func (repository *sqlTransactionRepository) InsertThreadLike(
+func (repository *repository) InsertThreadLike(
 	requestContext context.Context,
 	threadLikedEvent model.ThreadLikedEvent,
 ) (int64, error) {
+	transaction, err := repository.requireTransaction()
+	if err != nil {
+		return 0, err
+	}
+
 	insertQuery := `
 		INSERT INTO thread_likes (thread_id, liked_by)
 		VALUES ($1, $2)
 		ON CONFLICT (thread_id, liked_by) DO NOTHING
 	`
 
-	insertResult, err := repository.transaction.ExecContext(
+	insertResult, err := transaction.ExecContext(
 		requestContext,
 		insertQuery,
 		threadLikedEvent.ThreadID,
@@ -172,17 +212,22 @@ func (repository *sqlTransactionRepository) InsertThreadLike(
 	return rowsAffected, nil
 }
 
-func (repository *sqlTransactionRepository) IncrementThreadTotalLike(
+func (repository *repository) IncrementThreadTotalLike(
 	requestContext context.Context,
 	threadID int64,
 ) (int64, error) {
+	transaction, err := repository.requireTransaction()
+	if err != nil {
+		return 0, err
+	}
+
 	updateQuery := `
 		UPDATE threads
 		SET total_likes = total_likes + 1, updated_at = NOW()
 		WHERE id = $1
 	`
 
-	updateResult, err := repository.transaction.ExecContext(
+	updateResult, err := transaction.ExecContext(
 		requestContext,
 		updateQuery,
 		threadID,
@@ -324,4 +369,12 @@ func isInvalidPayloadSQLError(err error) bool {
 	default:
 		return false
 	}
+}
+
+func (repository *repository) requireTransaction() (*sql.Tx, error) {
+	if repository.transaction == nil {
+		return nil, fmt.Errorf("%w: transaction not started", model.ErrConsumeEvent)
+	}
+
+	return repository.transaction, nil
 }

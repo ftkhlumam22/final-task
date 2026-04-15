@@ -13,6 +13,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type deliveryHandler func(requestContext context.Context, deliveryMessage amqp.Delivery) module.ConsumeDecision
+
 func NewController(dependency Dependency) *Controller {
 	return &Controller{
 		threadService:           dependency.ThreadService,

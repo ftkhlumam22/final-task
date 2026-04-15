@@ -9,7 +9,6 @@ import (
 	"unicode/utf8"
 
 	"kaktus-consumer/model"
-	"kaktus-consumer/repository"
 )
 
 const publishResponseTimeout = 5 * time.Second
@@ -294,43 +293,43 @@ func (service *service) processCommentCreatedEvent(
 	requestContext context.Context,
 	commentCreatedEvent model.CommentCreatedEvent,
 ) error {
-	err := service.threadRepository.WithTransaction(
-		requestContext,
-		func(transactionRepository repository.ThreadTransactionRepository) error {
-			err := transactionRepository.InsertComment(requestContext, commentCreatedEvent)
-			if err != nil {
-				return err
-			}
+	transactionRepository, err := service.threadRepository.BeginTransaction(requestContext)
+	if err != nil {
+		return err
+	}
+	defer transactionRepository.RollbackTransaction()
 
-			if commentCreatedEvent.ParentCommentID != nil {
-				rowsAffected, err := transactionRepository.IncrementParentCommentReply(
-					requestContext,
-					*commentCreatedEvent.ParentCommentID,
-					commentCreatedEvent.ThreadID,
-				)
-				if err != nil {
-					return err
-				}
-				if rowsAffected == 0 {
-					return fmt.Errorf("%w: update parent comment total_reply: parent comment not found", model.ErrInvalidEventPayload)
-				}
-				return nil
-			}
+	err = transactionRepository.InsertComment(requestContext, commentCreatedEvent)
+	if err != nil {
+		return err
+	}
 
-			rowsAffected, err := transactionRepository.IncrementThreadTotalComment(
-				requestContext,
-				commentCreatedEvent.ThreadID,
-			)
-			if err != nil {
-				return err
-			}
-			if rowsAffected == 0 {
-				return fmt.Errorf("%w: update thread total_comment: thread not found", model.ErrConsumeEvent)
-			}
+	if commentCreatedEvent.ParentCommentID != nil {
+		rowsAffected, err := transactionRepository.IncrementParentCommentReply(
+			requestContext,
+			*commentCreatedEvent.ParentCommentID,
+			commentCreatedEvent.ThreadID,
+		)
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			return fmt.Errorf("%w: update parent comment total_reply: parent comment not found", model.ErrInvalidEventPayload)
+		}
+	} else {
+		rowsAffected, err := transactionRepository.IncrementThreadTotalComment(
+			requestContext,
+			commentCreatedEvent.ThreadID,
+		)
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			return fmt.Errorf("%w: update thread total_comment: thread not found", model.ErrConsumeEvent)
+		}
+	}
 
-			return nil
-		},
-	)
+	err = transactionRepository.CommitTransaction()
 	if err != nil {
 		return err
 	}
@@ -342,32 +341,31 @@ func (service *service) processThreadLikedEvent(
 	requestContext context.Context,
 	threadLikedEvent model.ThreadLikedEvent,
 ) error {
-	err := service.threadRepository.WithTransaction(
-		requestContext,
-		func(transactionRepository repository.ThreadTransactionRepository) error {
-			insertedRows, err := transactionRepository.InsertThreadLike(requestContext, threadLikedEvent)
-			if err != nil {
-				return err
-			}
+	transactionRepository, err := service.threadRepository.BeginTransaction(requestContext)
+	if err != nil {
+		return err
+	}
+	defer transactionRepository.RollbackTransaction()
 
-			if insertedRows == 0 {
-				return nil
-			}
+	insertedRows, err := transactionRepository.InsertThreadLike(requestContext, threadLikedEvent)
+	if err != nil {
+		return err
+	}
 
-			rowsAffected, err := transactionRepository.IncrementThreadTotalLike(
-				requestContext,
-				threadLikedEvent.ThreadID,
-			)
-			if err != nil {
-				return err
-			}
-			if rowsAffected == 0 {
-				return fmt.Errorf("%w: update thread total_likes: thread not found", model.ErrConsumeEvent)
-			}
+	if insertedRows > 0 {
+		rowsAffected, err := transactionRepository.IncrementThreadTotalLike(
+			requestContext,
+			threadLikedEvent.ThreadID,
+		)
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			return fmt.Errorf("%w: update thread total_likes: thread not found", model.ErrConsumeEvent)
+		}
+	}
 
-			return nil
-		},
-	)
+	err = transactionRepository.CommitTransaction()
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 type RouterDependency struct {
-	HealthHandler   controller.HealthHandler
+	HealthHandler    controller.HealthHandler
 	MethodMiddleware middleware.MethodMiddleware
 }
 

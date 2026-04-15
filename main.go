@@ -8,7 +8,6 @@ import (
 
 	"kaktus-consumer/config"
 	"kaktus-consumer/controller"
-	"kaktus-consumer/helper"
 	"kaktus-consumer/messaging"
 	"kaktus-consumer/messaging/publisher"
 	"kaktus-consumer/messaging/subscriber"
@@ -118,9 +117,7 @@ func main() {
 		HealthService: healthService,
 	})
 
-	methodMiddleware := middleware.NewMethodMiddleware(middleware.MethodMiddlewareDependency{
-		WriteError: helper.WriteError,
-	})
+	methodMiddleware := middleware.NewMethodMiddleware()
 
 	httpRouter := router.NewRouter(router.RouterDependency{
 		HealthHandler:    healthController,

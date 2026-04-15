@@ -9,16 +9,16 @@ import (
 )
 
 const (
-	defaultRabbitMQExchange          = "kaktus.events"
-	defaultRabbitMQExchangeType      = "topic"
-	defaultThreadCreatedRoutingKey   = "thread.created"
-	defaultThreadCreatedQueue        = "kaktus.thread.created.queue"
-	defaultCommentCreatedRoutingKey  = "comment.created"
-	defaultCommentCreatedQueue       = "kaktus.comment.created.queue"
-	defaultThreadLikedRoutingKey     = "thread.liked"
-	defaultThreadLikedQueue          = "kaktus.thread.liked.queue"
-	defaultThreadGetLikedRoutingKey  = "thread.get.liked"
-	defaultThreadGetLikedQueue       = "kaktus.thread.get.liked.queue"
+	defaultRabbitMQExchange         = "kaktus.events"
+	defaultRabbitMQExchangeType     = "topic"
+	defaultThreadCreatedRoutingKey  = "thread.created"
+	defaultThreadCreatedQueue       = "kaktus.thread.created.queue"
+	defaultCommentCreatedRoutingKey = "comment.created"
+	defaultCommentCreatedQueue      = "kaktus.comment.created.queue"
+	defaultThreadLikedRoutingKey    = "thread.liked"
+	defaultThreadLikedQueue         = "kaktus.thread.liked.queue"
+	defaultThreadGetLikedRoutingKey = "thread.get.liked"
+	defaultThreadGetLikedQueue      = "kaktus.thread.get.liked.queue"
 )
 
 func LoadRabbitTopologyConfig(environmentFactory model.GetEnvFactory) RabbitTopologyConfig {

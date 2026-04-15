@@ -43,8 +43,6 @@ type Controller struct {
 	threadGetLikedQueueName string
 }
 
-type deliveryHandler func(requestContext context.Context, deliveryMessage amqp.Delivery) module.ConsumeDecision
-
 func invalidPayloadDecision(eventName string, requestID string, err error) module.ConsumeDecision {
 	return module.ConsumeDecision{
 		EventName:  eventName,
