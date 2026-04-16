@@ -16,26 +16,26 @@ const (
 	rabbitClientRPC       rabbitClientMode = "rpc"
 )
 
-func NewRabbitPublisher(rabbitConfig model.RabbitConfig) (*model.RabbitPublisher, error) {
+func NewRabbitPublisher(rabbitConfig model.RabbitConfig) (model.RabbitPublisher, error) {
 	connection, channel, _, err := newRabbitClient(rabbitConfig, rabbitClientPublisher)
 	if err != nil {
-		return nil, err
+		return model.RabbitPublisher{}, err
 	}
 
-	return &model.RabbitPublisher{
+	return model.RabbitPublisher{
 		Connection:   connection,
 		Channel:      channel,
 		ExchangeName: ExchangeName,
 	}, nil
 }
 
-func NewRabbitRPCClient(rabbitConfig model.RabbitConfig) (*model.RabbitRPCClient, error) {
+func NewRabbitRPCClient(rabbitConfig model.RabbitConfig) (model.RabbitRPCClient, error) {
 	connection, channel, queueName, err := newRabbitClient(rabbitConfig, rabbitClientRPC)
 	if err != nil {
-		return nil, err
+		return model.RabbitRPCClient{}, err
 	}
 
-	return &model.RabbitRPCClient{
+	return model.RabbitRPCClient{
 		Connection:   connection,
 		Channel:      channel,
 		QueueName:    queueName,

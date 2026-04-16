@@ -6,7 +6,7 @@ import (
 	"final-task/helper"
 )
 
-func (router *HTTPRouter) registerAuthRoutes(httpRouter *http.ServeMux) {
+func (router HTTPRouter) registerAuthRoutes(httpRouter *http.ServeMux) {
 	authRouteGroup := http.NewServeMux()
 	authRouteGroup.HandleFunc("/register", helper.HandleMethod(http.MethodPost, router.authController.RegisterHandler))
 	authRouteGroup.HandleFunc("/login", helper.HandleMethod(http.MethodPost, router.authController.LoginHandler))

@@ -17,15 +17,15 @@ func NewHTTPRouter(
 	authController controller.AuthControllerHandler,
 	threadController controller.ThreadControllerHandler,
 	verifyToken middleware.VerifyTokenFunc,
-) *HTTPRouter {
-	return &HTTPRouter{
+) HTTPRouter {
+	return HTTPRouter{
 		authController:   authController,
 		threadController: threadController,
 		verifyToken:      verifyToken,
 	}
 }
 
-func (router *HTTPRouter) Handler() http.Handler {
+func (router HTTPRouter) Handler() http.Handler {
 	httpRouter := http.NewServeMux()
 	router.registerAuthRoutes(httpRouter)
 	router.registerThreadRoutes(httpRouter)

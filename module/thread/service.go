@@ -22,10 +22,10 @@ func NewThreadService(
 	threadSQLRepository ThreadSQLRepository,
 	threadListCacheRepository ThreadListCacheRepository,
 	threadDetailCacheRepository ThreadDetailCacheRepository,
-	rabbitPublisher *model.RabbitPublisher,
-	rabbitRPCClient *model.RabbitRPCClient,
-) *ThreadService {
-	return &ThreadService{
+	rabbitPublisher model.RabbitPublisher,
+	rabbitRPCClient model.RabbitRPCClient,
+) ThreadService {
+	return ThreadService{
 		threadSQLRepository:         threadSQLRepository,
 		threadListCacheRepository:   threadListCacheRepository,
 		threadDetailCacheRepository: threadDetailCacheRepository,
@@ -34,7 +34,7 @@ func NewThreadService(
 	}
 }
 
-func (threadService *ThreadService) ListThread(page int, limit int) (response.GetAllThread, error) {
+func (threadService ThreadService) ListThread(page int, limit int) (response.GetAllThread, error) {
 	cacheKey := buildThreadListCacheKey(limit)
 	cacheField := buildThreadListCacheField(page)
 
@@ -83,7 +83,7 @@ func (threadService *ThreadService) ListThread(page int, limit int) (response.Ge
 	return result, nil
 }
 
-func (threadService *ThreadService) GetThreadDetail(threadID int64) (response.ThreadDetail, error) {
+func (threadService ThreadService) GetThreadDetail(threadID int64) (response.ThreadDetail, error) {
 	cacheField := buildThreadDetailCacheField(threadID)
 	cachedThreadDetailValue, isCacheHit, err := threadService.threadDetailCacheRepository.GetHashField(
 		model.CacheThreadDetailHashKey,
@@ -133,7 +133,7 @@ func (threadService *ThreadService) GetThreadDetail(threadID int64) (response.Th
 	return threadDetail, nil
 }
 
-func (threadService *ThreadService) CreateThread(
+func (threadService ThreadService) CreateThread(
 	threadTitle string,
 	threadDescription string,
 	createdBy int64,
@@ -171,7 +171,7 @@ func (threadService *ThreadService) CreateThread(
 	return nil
 }
 
-func (threadService *ThreadService) CreateComment(
+func (threadService ThreadService) CreateComment(
 	threadID int64,
 	commentText string,
 	parentCommentID *int64,
@@ -208,7 +208,7 @@ func (threadService *ThreadService) CreateComment(
 	return nil
 }
 
-func (threadService *ThreadService) GetThreadLiked() ([]response.LikedThreadData, error) {
+func (threadService ThreadService) GetThreadLiked() ([]response.LikedThreadData, error) {
 	requestID, err := helper.NewRequestID()
 	if err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func (threadService *ThreadService) GetThreadLiked() ([]response.LikedThreadData
 	return nil, fmt.Errorf("%w: invalid rpc response body", model.ErrConsumeEvent)
 }
 
-func (threadService *ThreadService) InsertLikeThread(threadID int64, likedBy int64) error {
+func (threadService ThreadService) InsertLikeThread(threadID int64, likedBy int64) error {
 	requestID, err := helper.NewRequestID()
 	if err != nil {
 		return err
@@ -282,7 +282,7 @@ func (threadService *ThreadService) InsertLikeThread(threadID int64, likedBy int
 	return nil
 }
 
-func (threadService *ThreadService) publishRPCEventByName(
+func (threadService ThreadService) publishRPCEventByName(
 	eventName string,
 	requestID string,
 	eventPayloadData any,
@@ -365,7 +365,7 @@ func (threadService *ThreadService) publishRPCEventByName(
 	}
 }
 
-func (threadService *ThreadService) publishEventByName(
+func (threadService ThreadService) publishEventByName(
 	eventName string,
 	requestID string,
 	eventPayloadData any,
@@ -468,7 +468,7 @@ func buildThreadDetailCacheField(threadID int64) string {
 	return strconv.FormatInt(threadID, 10)
 }
 
-func (threadService *ThreadService) invalidateThreadListCache() error {
+func (threadService ThreadService) invalidateThreadListCache() error {
 	var cursor uint64
 	for {
 		cacheKeys, nextCursor, err := threadService.threadListCacheRepository.ScanKeys(
@@ -496,7 +496,7 @@ func (threadService *ThreadService) invalidateThreadListCache() error {
 	return nil
 }
 
-func (threadService *ThreadService) invalidateThreadDetailCache(threadID int64) error {
+func (threadService ThreadService) invalidateThreadDetailCache(threadID int64) error {
 	cacheField := buildThreadDetailCacheField(threadID)
 	return threadService.threadDetailCacheRepository.DeleteHashFields(model.CacheThreadDetailHashKey, cacheField)
 }

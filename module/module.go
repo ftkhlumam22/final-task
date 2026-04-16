@@ -8,17 +8,17 @@ import (
 )
 
 type Services struct {
-	Auth   *authmodule.AuthService
-	Thread *threadmodule.ThreadService
+	Auth   authmodule.AuthService
+	Thread threadmodule.ThreadService
 }
 
 func NewServices(
-	repositories *repository.Repositories,
+	repositories repository.Repositories,
 	tokenProvider authmodule.TokenProvider,
-	rabbitPublisher *model.RabbitPublisher,
-	rabbitRPCClient *model.RabbitRPCClient,
-) *Services {
-	return &Services{
+	rabbitPublisher model.RabbitPublisher,
+	rabbitRPCClient model.RabbitRPCClient,
+) Services {
+	return Services{
 		Auth: authmodule.NewAuthService(
 			repositories.Auth.AuthSQL,
 			tokenProvider,

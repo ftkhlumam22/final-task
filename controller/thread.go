@@ -12,11 +12,11 @@ import (
 	"final-task/model"
 )
 
-func NewThreadController(threadService ThreadService) *ThreadController {
-	return &ThreadController{threadService: threadService}
+func NewThreadController(threadService ThreadService) ThreadController {
+	return ThreadController{threadService: threadService}
 }
 
-func (threadController *ThreadController) GetLikedThread(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) GetLikedThread(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	log.Printf("[PRODUCER] Request list liked thread diterima.")
 
 	likedThreadList, err := threadController.threadService.GetThreadLiked()
@@ -32,7 +32,7 @@ func (threadController *ThreadController) GetLikedThread(responseWriter http.Res
 	})
 }
 
-func (threadController *ThreadController) CreateThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) CreateThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	log.Printf("[PRODUCER] Request buat thread diterima.")
 
 	var createThreadRequest request.CreateThread
@@ -76,7 +76,7 @@ func (threadController *ThreadController) CreateThreadHandler(responseWriter htt
 	})
 }
 
-func (threadController *ThreadController) ListThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) ListThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	page := parsePositiveIntQuery(httpRequest, "page", model.DefaultThreadListPage)
 	limit := parsePositiveIntQuery(httpRequest, "limit", model.DefaultThreadListLimit)
 	log.Printf("[PRODUCER] Request list thread diterima. page=%d limit=%d", page, limit)
@@ -98,7 +98,7 @@ func (threadController *ThreadController) ListThreadHandler(responseWriter http.
 	helper.WriteSuccess(responseWriter, http.StatusOK, responsePayload)
 }
 
-func (threadController *ThreadController) DetailThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) DetailThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	threadID := parsePositiveInt64Query(httpRequest, "thread_id", 0)
 	if threadID <= 0 {
 		helper.WriteError(responseWriter, http.StatusBadRequest, model.MessageThreadIDRequired)
@@ -116,7 +116,7 @@ func (threadController *ThreadController) DetailThreadHandler(responseWriter htt
 	helper.WriteSuccess(responseWriter, http.StatusOK, threadDetail)
 }
 
-func (threadController *ThreadController) CreateCommentHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) CreateCommentHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	log.Printf("[PRODUCER] Request buat comment diterima.")
 
 	var createCommentRequest request.Comment
@@ -164,7 +164,7 @@ func (threadController *ThreadController) CreateCommentHandler(responseWriter ht
 	})
 }
 
-func (threadController *ThreadController) InsertLikeThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (threadController ThreadController) InsertLikeThreadHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	log.Printf("[PRODUCER] Request like thread diterima.")
 
 	var likeThreadRequest request.LikeThread

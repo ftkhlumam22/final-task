@@ -9,7 +9,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func (authSQLRepository *AuthSQLRepository) CreateUser(
+func (authSQLRepository AuthSQLRepository) CreateUser(
 	userName string,
 	userEmail string,
 	passwordHash string,
@@ -40,7 +40,7 @@ func (authSQLRepository *AuthSQLRepository) CreateUser(
 	return createdUser, nil
 }
 
-func (authSQLRepository *AuthSQLRepository) FindUserByEmail(userEmail string) (model.User, error) {
+func (authSQLRepository AuthSQLRepository) FindUserByEmail(userEmail string) (model.User, error) {
 	findUserByEmailQuery := `
 		SELECT id, name, email, password_hash, created_at
 		FROM users

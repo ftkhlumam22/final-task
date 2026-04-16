@@ -10,12 +10,12 @@ import (
 )
 
 type Repositories struct {
-	Auth   *authrepo.Repositories
-	Thread *threadrepo.Repositories
+	Auth   authrepo.Repositories
+	Thread threadrepo.Repositories
 }
 
-func New(databaseConnection *sql.DB, redisClient *redis.Client) *Repositories {
-	return &Repositories{
+func New(databaseConnection *sql.DB, redisClient *redis.Client) Repositories {
+	return Repositories{
 		Auth:   authrepo.NewRepositories(databaseConnection, redisClient),
 		Thread: threadrepo.NewRepositories(databaseConnection, redisClient),
 	}

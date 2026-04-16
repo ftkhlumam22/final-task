@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func (threadCacheRepository *ThreadCacheRepository) GetHashField(
+func (threadCacheRepository ThreadCacheRepository) GetHashField(
 	cacheKey string,
 	cacheField string,
 ) (string, bool, error) {
@@ -23,7 +23,7 @@ func (threadCacheRepository *ThreadCacheRepository) GetHashField(
 	return cachedValue, true, nil
 }
 
-func (threadCacheRepository *ThreadCacheRepository) SetHashFieldWithTTL(
+func (threadCacheRepository ThreadCacheRepository) SetHashFieldWithTTL(
 	cacheKey string,
 	cacheField string,
 	cacheValue string,
@@ -37,7 +37,7 @@ func (threadCacheRepository *ThreadCacheRepository) SetHashFieldWithTTL(
 	return threadCacheRepository.redisClient.Expire(context.Background(), cacheKey, cacheTTL).Err()
 }
 
-func (threadCacheRepository *ThreadCacheRepository) ScanKeys(
+func (threadCacheRepository ThreadCacheRepository) ScanKeys(
 	cursor uint64,
 	pattern string,
 	count int64,
@@ -45,7 +45,7 @@ func (threadCacheRepository *ThreadCacheRepository) ScanKeys(
 	return threadCacheRepository.redisClient.Scan(context.Background(), cursor, pattern, count).Result()
 }
 
-func (threadCacheRepository *ThreadCacheRepository) DeleteKeys(cacheKeys ...string) error {
+func (threadCacheRepository ThreadCacheRepository) DeleteKeys(cacheKeys ...string) error {
 	if len(cacheKeys) == 0 {
 		return nil
 	}
@@ -53,7 +53,7 @@ func (threadCacheRepository *ThreadCacheRepository) DeleteKeys(cacheKeys ...stri
 	return threadCacheRepository.redisClient.Del(context.Background(), cacheKeys...).Err()
 }
 
-func (threadCacheRepository *ThreadCacheRepository) DeleteHashFields(
+func (threadCacheRepository ThreadCacheRepository) DeleteHashFields(
 	cacheKey string,
 	cacheFields ...string,
 ) error {

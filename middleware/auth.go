@@ -11,7 +11,7 @@ import (
 	"final-task/model"
 )
 
-type VerifyTokenFunc func(tokenString string, expectedTokenType string) (*model.CustomClaims, error)
+type VerifyTokenFunc func(tokenString string, expectedTokenType string) (model.CustomClaims, error)
 
 func RequireAccessToken(verifyToken VerifyTokenFunc, nextHandler http.HandlerFunc) http.HandlerFunc {
 	return func(responseWriter http.ResponseWriter, httpRequest *http.Request) {

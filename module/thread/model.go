@@ -11,8 +11,8 @@ type ThreadService struct {
 	threadSQLRepository         ThreadSQLRepository
 	threadListCacheRepository   ThreadListCacheRepository
 	threadDetailCacheRepository ThreadDetailCacheRepository
-	rabbitPublisher             *model.RabbitPublisher
-	rabbitRPCClient             *model.RabbitRPCClient
+	rabbitPublisher             model.RabbitPublisher
+	rabbitRPCClient             model.RabbitRPCClient
 }
 
 type ThreadSQLRepository interface {

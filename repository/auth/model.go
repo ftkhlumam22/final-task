@@ -7,8 +7,8 @@ import (
 )
 
 type Repositories struct {
-	AuthSQL   *AuthSQLRepository
-	AuthCache *AuthCacheRepository
+	AuthSQL   AuthSQLRepository
+	AuthCache AuthCacheRepository
 }
 
 type AuthSQLRepository struct {
@@ -19,9 +19,9 @@ type AuthCacheRepository struct {
 	redisClient *redis.Client
 }
 
-func NewRepositories(databaseConnection *sql.DB, redisClient *redis.Client) *Repositories {
-	return &Repositories{
-		AuthSQL:   &AuthSQLRepository{db: databaseConnection},
-		AuthCache: &AuthCacheRepository{redisClient: redisClient},
+func NewRepositories(databaseConnection *sql.DB, redisClient *redis.Client) Repositories {
+	return Repositories{
+		AuthSQL:   AuthSQLRepository{db: databaseConnection},
+		AuthCache: AuthCacheRepository{redisClient: redisClient},
 	}
 }

@@ -26,10 +26,10 @@ type UserCacheRepository interface {
 type TokenProvider interface {
 	GenerateAccessToken(userID int64) (string, error)
 	GenerateRefreshToken(userID int64) (token string, tokenID string, err error)
-	VerifyToken(tokenString string, expectedTokenType string) (*model.CustomClaims, error)
+	VerifyToken(tokenString string, expectedTokenType string) (model.CustomClaims, error)
 	RefreshTTL() time.Duration
 }
 
 type helperTokenProvider struct {
-	jwtManager *model.JWTManager
+	jwtManager model.JWTManager
 }

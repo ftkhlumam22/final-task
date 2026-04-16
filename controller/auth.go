@@ -10,11 +10,11 @@ import (
 	"final-task/model"
 )
 
-func NewAuthController(authService AuthService) *AuthController {
-	return &AuthController{authService: authService}
+func NewAuthController(authService AuthService) AuthController {
+	return AuthController{authService: authService}
 }
 
-func (authController *AuthController) RegisterHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (authController AuthController) RegisterHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var registerRequest request.RegisterUser
 	if err := helper.DecodeRequestBody(httpRequest, &registerRequest); err != nil {
 		helper.WriteError(responseWriter, http.StatusBadRequest, model.MessageInvalidRequestBody)
@@ -47,7 +47,7 @@ func (authController *AuthController) RegisterHandler(responseWriter http.Respon
 	})
 }
 
-func (authController *AuthController) LoginHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (authController AuthController) LoginHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var loginRequest request.LoginUser
 	if err := helper.DecodeRequestBody(httpRequest, &loginRequest); err != nil {
 		helper.WriteError(responseWriter, http.StatusBadRequest, model.MessageInvalidRequestBody)
@@ -78,7 +78,7 @@ func (authController *AuthController) LoginHandler(responseWriter http.ResponseW
 	})
 }
 
-func (authController *AuthController) RefreshHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (authController AuthController) RefreshHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var refreshRequest request.RefreshToken
 	if err := helper.DecodeRequestBody(httpRequest, &refreshRequest); err != nil {
 		helper.WriteError(responseWriter, http.StatusBadRequest, model.MessageInvalidRequestBody)
@@ -105,7 +105,7 @@ func (authController *AuthController) RefreshHandler(responseWriter http.Respons
 	})
 }
 
-func (authController *AuthController) LogoutHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
+func (authController AuthController) LogoutHandler(responseWriter http.ResponseWriter, httpRequest *http.Request) {
 	var refreshRequest request.RefreshToken
 	if err := helper.DecodeRequestBody(httpRequest, &refreshRequest); err != nil {
 		helper.WriteError(responseWriter, http.StatusBadRequest, model.MessageInvalidRequestBody)

@@ -13,15 +13,15 @@ func NewAuthService(
 	userSQLRepository UserSQLRepository,
 	tokenProvider TokenProvider,
 	userCacheRepository UserCacheRepository,
-) *AuthService {
-	return &AuthService{
+) AuthService {
+	return AuthService{
 		userSQLRepository:   userSQLRepository,
 		tokenProvider:       tokenProvider,
 		userCacheRepository: userCacheRepository,
 	}
 }
 
-func (authService *AuthService) RegisterUser(
+func (authService AuthService) RegisterUser(
 	userName string,
 	userEmail string,
 	userPassword string,
@@ -34,7 +34,7 @@ func (authService *AuthService) RegisterUser(
 	return authService.userSQLRepository.CreateUser(userName, userEmail, passwordHash)
 }
 
-func (authService *AuthService) LoginUser(
+func (authService AuthService) LoginUser(
 	userEmail string,
 	userPassword string,
 ) (model.AuthResult, error) {
@@ -73,7 +73,7 @@ func (authService *AuthService) LoginUser(
 	}, nil
 }
 
-func (authService *AuthService) RefreshUserToken(
+func (authService AuthService) RefreshUserToken(
 	refreshToken string,
 ) (model.AuthResult, error) {
 	tokenClaims, err := authService.tokenProvider.VerifyToken(refreshToken, model.TokenTypeRefresh)
@@ -120,7 +120,7 @@ func (authService *AuthService) RefreshUserToken(
 	}, nil
 }
 
-func (authService *AuthService) LogoutUser(
+func (authService AuthService) LogoutUser(
 	refreshToken string,
 ) error {
 	tokenClaims, err := authService.tokenProvider.VerifyToken(refreshToken, model.TokenTypeRefresh)
@@ -132,6 +132,6 @@ func (authService *AuthService) LogoutUser(
 	return authService.userCacheRepository.Delete(refreshTokenKey)
 }
 
-func (authService *AuthService) formatRefreshTokenKey(userID int64, tokenID string) string {
+func (authService AuthService) formatRefreshTokenKey(userID int64, tokenID string) string {
 	return fmt.Sprintf("auth:refresh:%d:%s", userID, tokenID)
 }

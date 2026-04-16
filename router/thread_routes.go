@@ -7,7 +7,7 @@ import (
 	"final-task/middleware"
 )
 
-func (router *HTTPRouter) registerThreadRoutes(httpRouter *http.ServeMux) {
+func (router HTTPRouter) registerThreadRoutes(httpRouter *http.ServeMux) {
 	httpRouter.HandleFunc("/threads", helper.HandleMethods(map[string]http.HandlerFunc{
 		http.MethodGet:  router.threadController.ListThreadHandler,
 		http.MethodPost: middleware.RequireAccessToken(router.verifyToken, router.threadController.CreateThreadHandler),

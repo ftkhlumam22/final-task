@@ -13,15 +13,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func NewJWTManager(jwtConfig model.JWTConfig) *model.JWTManager {
-	return &model.JWTManager{Config: jwtConfig}
+func NewJWTManager(jwtConfig model.JWTConfig) model.JWTManager {
+	return model.JWTManager{Config: jwtConfig}
 }
 
-func RefreshTTL(jwtManager *model.JWTManager) time.Duration {
+func RefreshTTL(jwtManager model.JWTManager) time.Duration {
 	return jwtManager.Config.RefreshTokenTTL
 }
 
-func GenerateAccessToken(jwtManager *model.JWTManager, userID int64) (string, error) {
+func GenerateAccessToken(jwtManager model.JWTManager, userID int64) (string, error) {
 	generatedToken, err := generateToken(jwtManager, userID, model.TokenTypeAccess, "", jwtManager.Config.AccessTokenTTL)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func GenerateAccessToken(jwtManager *model.JWTManager, userID int64) (string, er
 	return ProtectToken(generatedToken), nil
 }
 
-func GenerateRefreshToken(jwtManager *model.JWTManager, userID int64) (token string, tokenID string, err error) {
+func GenerateRefreshToken(jwtManager model.JWTManager, userID int64) (token string, tokenID string, err error) {
 	tokenID, err = newTokenID()
 	if err != nil {
 		return "", "", err
@@ -44,10 +44,10 @@ func GenerateRefreshToken(jwtManager *model.JWTManager, userID int64) (token str
 	return ProtectToken(token), tokenID, nil
 }
 
-func VerifyToken(jwtManager *model.JWTManager, tokenString string, expectedTokenType string) (*model.CustomClaims, error) {
+func VerifyToken(jwtManager model.JWTManager, tokenString string, expectedTokenType string) (model.CustomClaims, error) {
 	rawToken, err := UnprotectToken(tokenString)
 	if err != nil {
-		return nil, err
+		return model.CustomClaims{}, err
 	}
 
 	parsedToken, err := jwt.ParseWithClaims(rawToken, &model.CustomClaims{}, func(token *jwt.Token) (any, error) {
@@ -57,23 +57,23 @@ func VerifyToken(jwtManager *model.JWTManager, tokenString string, expectedToken
 		return []byte(jwtManager.Config.SecretKey), nil
 	})
 	if err != nil {
-		return nil, err
+		return model.CustomClaims{}, err
 	}
 
 	claims, isValidClaimType := parsedToken.Claims.(*model.CustomClaims)
 	if !isValidClaimType || !parsedToken.Valid {
-		return nil, errors.New(model.MessageInvalidToken)
+		return model.CustomClaims{}, errors.New(model.MessageInvalidToken)
 	}
 
 	if claims.TokenType != expectedTokenType {
-		return nil, errors.New(model.MessageInvalidTokenType)
+		return model.CustomClaims{}, errors.New(model.MessageInvalidTokenType)
 	}
 
-	return claims, nil
+	return *claims, nil
 }
 
 func generateToken(
-	jwtManager *model.JWTManager,
+	jwtManager model.JWTManager,
 	userID int64,
 	tokenType string,
 	tokenID string,

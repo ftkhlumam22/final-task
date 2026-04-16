@@ -9,7 +9,7 @@ import (
 	"final-task/model"
 )
 
-func (threadSQLRepository *ThreadSQLRepository) GetThreadList(limit int, offset int) ([]response.ThreadData, int, error) {
+func (threadSQLRepository ThreadSQLRepository) GetThreadList(limit int, offset int) ([]response.ThreadData, int, error) {
 	threadListQuery := `
 		SELECT
 			threads.id,
@@ -62,7 +62,7 @@ func (threadSQLRepository *ThreadSQLRepository) GetThreadList(limit int, offset 
 	return threadList, totalForum, nil
 }
 
-func (threadSQLRepository *ThreadSQLRepository) GetThreadDetail(threadID int64) (response.ThreadDetail, error) {
+func (threadSQLRepository ThreadSQLRepository) GetThreadDetail(threadID int64) (response.ThreadDetail, error) {
 	threadDetailQuery := `
 		SELECT
 			threads.id,
@@ -98,7 +98,7 @@ func (threadSQLRepository *ThreadSQLRepository) GetThreadDetail(threadID int64) 
 	return threadDetail, nil
 }
 
-func (threadSQLRepository *ThreadSQLRepository) GetThreadCommentRows(threadID int64) ([]model.ThreadCommentRow, error) {
+func (threadSQLRepository ThreadSQLRepository) GetThreadCommentRows(threadID int64) ([]model.ThreadCommentRow, error) {
 	commentListQuery := `
 		SELECT
 			comments.id,
