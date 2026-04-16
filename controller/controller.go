@@ -11,12 +11,12 @@ type HealthControllerDependency = controllerhealth.Dependency
 type ThreadConsumerHandler = controllerthread.Handler
 type ThreadConsumerControllerDependency = controllerthread.Dependency
 
-func NewHealthController(dependency HealthControllerDependency) *controllerhealth.Controller {
+func NewHealthController(dependency HealthControllerDependency) controllerhealth.Controller {
 	return controllerhealth.NewController(dependency)
 }
 
 func NewThreadConsumerController(
 	dependency ThreadConsumerControllerDependency,
-) *controllerthread.Controller {
+) controllerthread.Controller {
 	return controllerthread.NewController(dependency)
 }

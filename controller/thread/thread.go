@@ -15,8 +15,8 @@ import (
 
 type deliveryHandler func(requestContext context.Context, deliveryMessage amqp.Delivery) module.ConsumeDecision
 
-func NewController(dependency Dependency) *Controller {
-	return &Controller{
+func NewController(dependency Dependency) Controller {
+	return Controller{
 		threadService:           dependency.ThreadService,
 		subscriberRepository:    dependency.SubscriberRepository,
 		threadCreatedQueueName:  dependency.ThreadCreatedQueueName,
@@ -26,7 +26,7 @@ func NewController(dependency Dependency) *Controller {
 	}
 }
 
-func (controller *Controller) Start(requestContext context.Context) error {
+func (controller Controller) Start(requestContext context.Context) error {
 	errChannel := make(chan error, 4)
 
 	go controller.startThreadCreatedConsumer(requestContext, errChannel)
@@ -51,7 +51,7 @@ func (controller *Controller) Start(requestContext context.Context) error {
 	}
 }
 
-func (controller *Controller) consumeQueue(
+func (controller Controller) consumeQueue(
 	requestContext context.Context,
 	queueName string,
 	consumerTag string,
@@ -77,7 +77,7 @@ func (controller *Controller) consumeQueue(
 	}
 }
 
-func (controller *Controller) startThreadCreatedConsumer(
+func (controller Controller) startThreadCreatedConsumer(
 	requestContext context.Context,
 	errChannel chan<- error,
 ) {
@@ -99,7 +99,7 @@ func (controller *Controller) startThreadCreatedConsumer(
 	}
 }
 
-func (controller *Controller) startCommentCreatedConsumer(
+func (controller Controller) startCommentCreatedConsumer(
 	requestContext context.Context,
 	errChannel chan<- error,
 ) {
@@ -121,7 +121,7 @@ func (controller *Controller) startCommentCreatedConsumer(
 	}
 }
 
-func (controller *Controller) startThreadLikedConsumer(
+func (controller Controller) startThreadLikedConsumer(
 	requestContext context.Context,
 	errChannel chan<- error,
 ) {
@@ -143,7 +143,7 @@ func (controller *Controller) startThreadLikedConsumer(
 	}
 }
 
-func (controller *Controller) startThreadGetLikedConsumer(
+func (controller Controller) startThreadGetLikedConsumer(
 	requestContext context.Context,
 	errChannel chan<- error,
 ) {
@@ -177,7 +177,7 @@ func (controller *Controller) startThreadGetLikedConsumer(
 	}
 }
 
-func (controller *Controller) applyDecision(
+func (controller Controller) applyDecision(
 	deliveryMessage amqp.Delivery,
 	decision module.ConsumeDecision,
 ) {
@@ -198,7 +198,7 @@ func (controller *Controller) applyDecision(
 	controller.nackMessage(deliveryMessage, decision.NackReason, decision.Requeue)
 }
 
-func (controller *Controller) ackMessage(
+func (controller Controller) ackMessage(
 	deliveryMessage amqp.Delivery,
 	eventName string,
 	requestID string,
@@ -212,7 +212,7 @@ func (controller *Controller) ackMessage(
 	log.Printf("[consumer] ack sukses. event=%s request_id=%s", eventName, requestID)
 }
 
-func (controller *Controller) nackMessage(
+func (controller Controller) nackMessage(
 	deliveryMessage amqp.Delivery,
 	reason string,
 	requeue bool,

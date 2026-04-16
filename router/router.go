@@ -2,14 +2,14 @@ package router
 
 import "net/http"
 
-func NewRouter(dependency RouterDependency) *Router {
-	return &Router{
+func NewRouter(dependency RouterDependency) Router {
+	return Router{
 		healthHandler:    dependency.HealthHandler,
 		methodMiddleware: dependency.MethodMiddleware,
 	}
 }
 
-func (router *Router) Handler() http.Handler {
+func (router Router) Handler() http.Handler {
 	httpRouter := http.NewServeMux()
 
 	router.registerHealthRoutes(httpRouter)

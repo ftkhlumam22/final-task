@@ -14,7 +14,7 @@ import (
 const publishResponseTimeout = 5 * time.Second
 
 func NewService(dependency Dependency) Service {
-	return &service{
+	return service{
 		threadRepository:    dependency.ThreadRepository,
 		publisherRepository: dependency.PublisherRepository,
 		maxRetry:            dependency.MaxRetry,
@@ -22,7 +22,7 @@ func NewService(dependency Dependency) Service {
 	}
 }
 
-func (service *service) HandleThreadCreatedMessage(
+func (service service) HandleThreadCreatedMessage(
 	requestContext context.Context,
 	threadCreatedEvent model.ThreadCreatedEvent,
 ) ConsumeDecision {
@@ -64,7 +64,7 @@ func (service *service) HandleThreadCreatedMessage(
 	}
 }
 
-func (service *service) HandleCommentCreatedMessage(
+func (service service) HandleCommentCreatedMessage(
 	requestContext context.Context,
 	commentCreatedEvent model.CommentCreatedEvent,
 ) ConsumeDecision {
@@ -106,7 +106,7 @@ func (service *service) HandleCommentCreatedMessage(
 	}
 }
 
-func (service *service) HandleThreadLikedMessage(
+func (service service) HandleThreadLikedMessage(
 	requestContext context.Context,
 	threadLikedEvent model.ThreadLikedEvent,
 ) ConsumeDecision {
@@ -148,7 +148,7 @@ func (service *service) HandleThreadLikedMessage(
 	}
 }
 
-func (service *service) HandleThreadGetLikedMessage(
+func (service service) HandleThreadGetLikedMessage(
 	requestContext context.Context,
 	threadGetLikedRequest model.ThreadGetLikedRequest,
 	replyToQueue string,
@@ -208,7 +208,7 @@ func (service *service) HandleThreadGetLikedMessage(
 	}
 }
 
-func (service *service) processEventWithRetry(
+func (service service) processEventWithRetry(
 	requestContext context.Context,
 	eventName string,
 	requestID string,
@@ -232,7 +232,7 @@ func (service *service) processEventWithRetry(
 	return fmt.Errorf("%w: event=%s request_id=%s", err, eventName, requestID)
 }
 
-func (service *service) buildThreadGetLikedResponseWithRetry(
+func (service service) buildThreadGetLikedResponseWithRetry(
 	requestContext context.Context,
 	threadGetLikedRequest model.ThreadGetLikedRequest,
 ) (interface{}, error) {
@@ -266,7 +266,7 @@ func (service *service) buildThreadGetLikedResponseWithRetry(
 	)
 }
 
-func (service *service) buildThreadGetLikedResponse(
+func (service service) buildThreadGetLikedResponse(
 	requestContext context.Context,
 ) (interface{}, error) {
 	likedThreads, err := service.threadRepository.GetLikedThreads(requestContext)
@@ -277,7 +277,7 @@ func (service *service) buildThreadGetLikedResponse(
 	return model.ThreadGetLikedSuccessResponse{Data: likedThreads}, nil
 }
 
-func (service *service) processThreadCreatedEvent(
+func (service service) processThreadCreatedEvent(
 	requestContext context.Context,
 	threadCreatedEvent model.ThreadCreatedEvent,
 ) error {
@@ -289,7 +289,7 @@ func (service *service) processThreadCreatedEvent(
 	return service.threadRepository.InvalidateThreadListCache(requestContext)
 }
 
-func (service *service) processCommentCreatedEvent(
+func (service service) processCommentCreatedEvent(
 	requestContext context.Context,
 	commentCreatedEvent model.CommentCreatedEvent,
 ) error {
@@ -337,7 +337,7 @@ func (service *service) processCommentCreatedEvent(
 	return service.threadRepository.InvalidateThreadDetailCache(requestContext, commentCreatedEvent.ThreadID)
 }
 
-func (service *service) processThreadLikedEvent(
+func (service service) processThreadLikedEvent(
 	requestContext context.Context,
 	threadLikedEvent model.ThreadLikedEvent,
 ) error {

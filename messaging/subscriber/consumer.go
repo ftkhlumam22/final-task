@@ -8,7 +8,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func (repository *SubscriberRepository) Consume(
+func (repository SubscriberRepository) Consume(
 	queueName string,
 	consumerTag string,
 ) (<-chan amqp.Delivery, error) {
@@ -28,7 +28,7 @@ func (repository *SubscriberRepository) Consume(
 	return deliveryChannel, nil
 }
 
-func (repository *SubscriberRepository) Ack(deliveryMessage amqp.Delivery) error {
+func (repository SubscriberRepository) Ack(deliveryMessage amqp.Delivery) error {
 	err := deliveryMessage.Ack(false)
 	if err != nil {
 		return fmt.Errorf("%w: ack message: %v", model.ErrConsumeEvent, err)
@@ -37,7 +37,7 @@ func (repository *SubscriberRepository) Ack(deliveryMessage amqp.Delivery) error
 	return nil
 }
 
-func (repository *SubscriberRepository) Nack(deliveryMessage amqp.Delivery, requeue bool) error {
+func (repository SubscriberRepository) Nack(deliveryMessage amqp.Delivery, requeue bool) error {
 	err := deliveryMessage.Nack(false, requeue)
 	if err != nil {
 		return fmt.Errorf("%w: nack message: %v", model.ErrConsumeEvent, err)

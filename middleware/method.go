@@ -8,10 +8,10 @@ import (
 )
 
 func NewMethodMiddleware() MethodMiddleware {
-	return &methodMiddleware{}
+	return methodMiddleware{}
 }
 
-func (middleware *methodMiddleware) Handle(
+func (middleware methodMiddleware) Handle(
 	expectedMethod string,
 	nextHandler http.HandlerFunc,
 ) http.HandlerFunc {

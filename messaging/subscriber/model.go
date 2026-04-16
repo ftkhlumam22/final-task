@@ -6,8 +6,8 @@ type SubscriberRepository struct {
 	channel *amqp.Channel
 }
 
-func NewSubscriberRepository(channel *amqp.Channel) *SubscriberRepository {
-	return &SubscriberRepository{
+func NewSubscriberRepository(channel *amqp.Channel) SubscriberRepository {
+	return SubscriberRepository{
 		channel: channel,
 	}
 }
